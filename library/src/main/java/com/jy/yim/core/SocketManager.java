@@ -7,7 +7,6 @@ import com.jy.yim.YIMConfig;
 import com.jy.yim.utils.MLogUtils;
 import com.jy.yim.utils.SocketDataUtils;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.ref.WeakReference;
@@ -34,7 +33,6 @@ public abstract class SocketManager implements IReceive, ISend {
 
     public static final int CONNECT_SUCCEED = 666;//连接成功
     public static final int RECEIVE_MSG = 667;//接收到IM消息
-    public static final int HEART_PACKAGE_TIMEOUT = 670;//接收心跳包超时
 
 
     public SocketManager() {
@@ -137,17 +135,6 @@ public abstract class SocketManager implements IReceive, ISend {
         handler.dispatchMessage(message);
     }
 
-    /**
-     * 处理IM消息
-     *
-     * @param msg
-     */
-    private void handleIMMsg(String msg) {
-        //接收到数据，说明链路正常，移除心跳包超时
-        handler.removeMessages(HEART_PACKAGE_TIMEOUT);
-
-        onReceiveData(msg);
-    }
 
     /**
      * 接收到数据（主线程）
@@ -250,9 +237,7 @@ public abstract class SocketManager implements IReceive, ISend {
                         MLogUtils.i("send HeartPackage complete", content);
                         freeTime = 0;
                         autoSeqID();
-                        //90秒后，收不到IM消息，则认为断线
-                        handler.sendEmptyMessageDelayed(HEART_PACKAGE_TIMEOUT, 90 * 1000);
-                    } catch (IOException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                         MLogUtils.e("send HeartPackage Exception", e.getMessage());
                         stop();
@@ -262,7 +247,7 @@ public abstract class SocketManager implements IReceive, ISend {
                 int time = 5 * 1000;
                 try {
                     Thread.sleep(time);
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
                 freeTime += time;
@@ -309,11 +294,7 @@ public abstract class SocketManager implements IReceive, ISend {
                     socketManager.connectSucceed();
                     break;
                 case RECEIVE_MSG://处理接收到IM消息
-                    socketManager.handleIMMsg((String) msg.obj);
-                    break;
-                case HEART_PACKAGE_TIMEOUT://心跳包超时
-                    MLogUtils.e("心跳包超时--90秒没有收到任何信息，重连IM");
-                    socketManager.connect();
+                    socketManager.onReceiveData((String) msg.obj);
                     break;
                 default:
                     socketManager.handlerMessage(msg);

@@ -15,7 +15,7 @@ import java.io.OutputStream;
  */
 public class SocketDataUtils {
 
-    public static void output(OutputStream outputStream, String content, int size) throws IOException {
+    public static void output(OutputStream outputStream, String content, int size) throws Exception {
         BufferedOutputStream bops = new BufferedOutputStream(outputStream,
                 4 * size);
         // 压缩过后的byte数
@@ -45,9 +45,9 @@ public class SocketDataUtils {
      *
      * @param is
      * @return
-     * @throws IOException
+     * @throws Exception
      */
-    public static String getDataBody(InputStream is) throws IOException {
+    public static String getDataBody(InputStream is) throws Exception {
         String dataBody = null;
         // 获取头部
         byte[] head = getData(is, 4);
@@ -66,9 +66,9 @@ public class SocketDataUtils {
      * @param is
      * @param length
      * @return
-     * @throws IOException
+     * @throws Exception
      */
-    private static byte[] getData(InputStream is, int length) throws IOException {
+    private static byte[] getData(InputStream is, int length) throws Exception {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         byte[] buffer = new byte[5120];
         int nIdx = 0; //累计读取了多少位

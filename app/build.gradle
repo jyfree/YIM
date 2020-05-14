@@ -32,6 +32,9 @@ dependencies {
     implementation rootProject.ext.dependencies.androidx_core_ktx
     implementation rootProject.ext.dependencies.androidx_constraintlayout
     implementation rootProject.ext.dependencies.androidx_appcompat
+    implementation 'com.jy.commonlibrary:commonlibrary:1.1.4'
+    implementation rootProject.ext.dependencies.yim
+
     implementation project(':library')
 
     testImplementation 'junit:junit:4.12'

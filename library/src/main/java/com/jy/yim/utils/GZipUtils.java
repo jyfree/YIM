@@ -3,7 +3,6 @@ package com.jy.yim.utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.zip.GZIPInputStream;
@@ -57,7 +56,7 @@ public class GZipUtils {
                     gzip.close();
                 }
 
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -69,7 +68,7 @@ public class GZipUtils {
     /**
      * @param data 需要压缩的内容
      */
-    public static byte[] compressToBtyes(byte[] data) throws IOException {
+    public static byte[] compressToBtyes(byte[] data) throws Exception {
         ByteArrayInputStream bais = new ByteArrayInputStream(data);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         // 压缩
@@ -93,8 +92,7 @@ public class GZipUtils {
      * @param os
      * @throws Exception
      */
-    public static void compress(InputStream is, OutputStream os)
-            throws IOException {
+    public static void compress(InputStream is, OutputStream os) throws Exception {
         GZIPOutputStream gos = new GZIPOutputStream(os);
 
         int count;

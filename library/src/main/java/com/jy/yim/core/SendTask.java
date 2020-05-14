@@ -6,7 +6,6 @@ import androidx.annotation.NonNull;
 import com.jy.yim.utils.MLogUtils;
 import com.jy.yim.utils.SocketDataUtils;
 
-import java.io.IOException;
 import java.io.OutputStream;
 
 
@@ -38,7 +37,7 @@ public class SendTask implements Runnable {
 
             callback.onSendSucceed(content);
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             // 这里要处理发送失败
             e.printStackTrace();
             MLogUtils.e("send the content Exception", e.getMessage());
