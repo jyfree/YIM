@@ -143,8 +143,6 @@ public abstract class SocketManager implements IReceive, ISend {
      * @param msg
      */
     private void handleIMMsg(String msg) {
-        //接收到数据，链路空闲时间置为0
-        freeTime = 0;
         //接收到数据，说明链路正常，移除心跳包超时
         handler.removeMessages(HEART_PACKAGE_TIMEOUT);
 
@@ -182,6 +180,8 @@ public abstract class SocketManager implements IReceive, ISend {
      * @param msg 消息内容
      */
     public void sendMsg(String msg) {
+        //发送数据，链路空闲时间置为0
+        freeTime = 0;
         ThreadManager.getInstance().execute(new SendTask(outputStream, msg, this));
         autoSeqID();
     }
