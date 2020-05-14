@@ -13,8 +13,8 @@ import java.util.Locale;
  */
 public class MLogUtils {
 
-    private static final boolean SHOW_LOG = true;
-    private static final String TAG = "YIM";
+    public static final boolean SHOW_LOG = true;
+    private static final String TAG = "MLogUtils";
 
     enum LogLevel {
         DEBUG,
