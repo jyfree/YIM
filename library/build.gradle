@@ -34,7 +34,7 @@ dependencies {
 }
 
 publish {
-    artifactId = 'YIM'
+    artifactId = 'yim'
     userOrg = rootProject.userOrg//bintray.com用户名
     groupId = "com.jy.yim"//jcenter上的路径
     uploadName = artifactId//项目名称
