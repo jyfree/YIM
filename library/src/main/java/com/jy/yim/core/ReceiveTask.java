@@ -17,10 +17,12 @@ public class ReceiveTask implements Runnable {
     private InputStream inputStream;
     private boolean isClose = false;
     private IReceive callback;
+    private int dataHeaderLength;
 
-    public ReceiveTask(InputStream inputStream, IReceive callback) {
+    public ReceiveTask(InputStream inputStream, int dataHeaderLength, IReceive callback) {
         this.inputStream = inputStream;
         this.callback = callback;
+        this.dataHeaderLength = dataHeaderLength;
     }
 
     @Override
@@ -28,7 +30,7 @@ public class ReceiveTask implements Runnable {
         while (!isClose) {
             try {
                 //这里进行字节流的处理  不再使用字符流
-                String msg = SocketDataUtils.getDataBody(inputStream);
+                String msg = SocketDataUtils.getDataBody(inputStream, dataHeaderLength);
 
                 if (null != msg && !msg.trim().isEmpty()) {
                     MLogUtils.i("receive new message", msg);

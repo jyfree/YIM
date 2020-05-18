@@ -7,6 +7,7 @@ public final class YIMConfig {
     public final int port;
     public final long reconnectionTime;
     public final int connectTimeout;
+    public final int dataHeaderLength;
 
     public YIMConfig(final Builder builder) {
         ip = builder.ip;
@@ -14,6 +15,7 @@ public final class YIMConfig {
         maxFreeTime = builder.maxFreeTime;
         connectTimeout = builder.connectTimeout;
         reconnectionTime = builder.reconnectionTime;
+        dataHeaderLength = builder.dataHeaderLength;
     }
 
     public static Builder beginBuilder() {
@@ -24,10 +26,12 @@ public final class YIMConfig {
         private static final int DEFAULT_MAX_FREE_TIME = 20 * 1000; //默认最大空闲时间
         private static final int DEFAULT_RECONNECTION_TIME = 5 * 1000; //默认重连时间
         private static final int DEFAULT_CONNECT_TIMEOUT = 5 * 1000; //默认连接超时时间
+        private static final int DEFAULT_DATA_HEADER_LENGTH = 4; //默认数据头字节数（IM协议）
 
         private long maxFreeTime = DEFAULT_MAX_FREE_TIME;
         private long reconnectionTime = DEFAULT_RECONNECTION_TIME;
         private int connectTimeout = DEFAULT_CONNECT_TIMEOUT;
+        private int dataHeaderLength = DEFAULT_DATA_HEADER_LENGTH;
 
         private String ip;
         private int port;
@@ -55,6 +59,11 @@ public final class YIMConfig {
 
         public Builder setReconnectionTime(long reconnectionTime) {
             this.reconnectionTime = reconnectionTime;
+            return this;
+        }
+
+        public Builder setDataHeaderLength(int dataHeaderLength) {
+            this.dataHeaderLength = dataHeaderLength;
             return this;
         }
 

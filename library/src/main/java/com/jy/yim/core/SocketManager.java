@@ -117,7 +117,7 @@ public abstract class SocketManager implements IReceive, ISend {
      */
     private void startReceive() {
         MLogUtils.i("启动接收IM线程");
-        receiveTask = new ReceiveTask(inputStream, this);
+        receiveTask = new ReceiveTask(inputStream, yimConfig.dataHeaderLength, this);
         ThreadManager.getInstance().execute(receiveTask);
     }
 
@@ -169,7 +169,7 @@ public abstract class SocketManager implements IReceive, ISend {
     public void sendMsg(String msg) {
         //发送数据，链路空闲时间置为0
         freeTime = 0;
-        ThreadManager.getInstance().execute(new SendTask(outputStream, msg, this));
+        ThreadManager.getInstance().execute(new SendTask(outputStream, msg, yimConfig.dataHeaderLength, this));
         autoSeqID();
     }
 
@@ -224,6 +224,7 @@ public abstract class SocketManager implements IReceive, ISend {
     private class HeartPackageTask implements Runnable {
 
         private boolean isStop = false;
+        private int SIZE = 512;
 
         @Override
         public void run() {
@@ -232,7 +233,7 @@ public abstract class SocketManager implements IReceive, ISend {
                     try {
                         String content = getHeartPackageData();
                         MLogUtils.i("send HeartPackage", content);
-                        SocketDataUtils.output(outputStream, content, 512);
+                        SocketDataUtils.output(outputStream, content, SIZE, yimConfig.dataHeaderLength);
                         //发送心跳包数据成功，链路空闲时间置为0
                         MLogUtils.i("send HeartPackage complete", content);
                         freeTime = 0;

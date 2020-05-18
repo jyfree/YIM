@@ -20,11 +20,13 @@ public class SendTask implements Runnable {
     private OutputStream outputStream;
     private String content;
     private ISend callback;
+    private int dataHeaderLength;
 
-    public SendTask(OutputStream outputStream, @NonNull String content, ISend callback) {
+    public SendTask(OutputStream outputStream, @NonNull String content, int dataHeaderLength, ISend callback) {
         this.outputStream = outputStream;
         this.content = content;
         this.callback = callback;
+        this.dataHeaderLength = dataHeaderLength;
     }
 
     @Override
@@ -32,7 +34,7 @@ public class SendTask implements Runnable {
         try {
 
             MLogUtils.i("send the content", content);
-            SocketDataUtils.output(outputStream, content, SIZE);
+            SocketDataUtils.output(outputStream, content, SIZE, dataHeaderLength);
             MLogUtils.i("send the content complete", content);
 
             callback.onSendSucceed(content);

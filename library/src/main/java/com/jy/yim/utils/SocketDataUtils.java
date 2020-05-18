@@ -3,7 +3,6 @@ package com.jy.yim.utils;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
@@ -15,7 +14,7 @@ import java.io.OutputStream;
  */
 public class SocketDataUtils {
 
-    public static void output(OutputStream outputStream, String content, int size) throws Exception {
+    public static void output(OutputStream outputStream, String content, int size, int dataHeaderLength) throws Exception {
         BufferedOutputStream bops = new BufferedOutputStream(outputStream,
                 4 * size);
         // 压缩过后的byte数
@@ -24,15 +23,15 @@ public class SocketDataUtils {
         // 压缩过后 内容的长度
         int length = contentBytes.length;
         // 最后传输的数据
-        byte[] data = new byte[length + 4];
+        byte[] data = new byte[length + dataHeaderLength];
         // 内容长度的字节数
-        byte[] lengthData = ByteUtil.toByteArray(length, 4);
+        byte[] lengthData = ByteUtil.toByteArray(length, dataHeaderLength);
         // 发给服务器的字节 要先拼了内容长度的字节数 再拼上真实内容的字节数
-        for (int i = 0; i < (length + 4); i++) {
-            if (i < 4) {
+        for (int i = 0; i < (length + dataHeaderLength); i++) {
+            if (i < dataHeaderLength) {
                 data[i] = lengthData[i];
             } else {
-                data[i] = contentBytes[i - 4];
+                data[i] = contentBytes[i - dataHeaderLength];
             }
         }
 
@@ -47,11 +46,11 @@ public class SocketDataUtils {
      * @return
      * @throws Exception
      */
-    public static String getDataBody(InputStream is) throws Exception {
+    public static String getDataBody(InputStream is, int dataHeaderLength) throws Exception {
         String dataBody = null;
         // 获取头部
-        byte[] head = getData(is, 4);
-        int dataLength = ByteUtil.toInt(head);
+        byte[] head = getData(is, dataHeaderLength);
+        int dataLength = ByteUtil.toInt(head, dataHeaderLength);
 
         // 获取数据
         byte[] data = getData(is, dataLength);
