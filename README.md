@@ -5,10 +5,12 @@
 
 ## 介绍
 
-YIM是通用socket通信框架，只需配置相关参数，自定义协议（目前规定前4个字节为数据头），扩展性好
+YIM是通用socket通信框架
+    1、可自定义协议，扩展性好
+    2、配置相关参数即可使用
 
 ## gradle引入方式
- implementation 'com.jy.yim:yim:1.0.0'
+ implementation 'com.jy.yim:yim:1.0.1'
 
 
 
