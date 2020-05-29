@@ -12,13 +12,14 @@ import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class SocketManager implements IReceive, ISend {
 
     private YIMConfig yimConfig;
 
-    private boolean isConnected = false;//是否已连接
-    private boolean isCloseSocket = false;//是否已关闭socket
+    private AtomicBoolean isConnected = new AtomicBoolean(false);//是否已连接
+    private AtomicBoolean isCloseSocket = new AtomicBoolean(false);//是否已关闭socket
     private long freeTime = 0; //链路空闲时间
 
     public int seqID = 0; //消息序列号
@@ -51,7 +52,7 @@ public abstract class SocketManager implements IReceive, ISend {
      */
     public void connect() {
         closeSocket("SocketManager[newConnectTask]");
-        isCloseSocket = false;
+        isCloseSocket.set(false);
         MLogUtils.i("启动新线程--连接IM");
         ThreadManager.getInstance().execute(new connectTask());
     }
@@ -72,25 +73,26 @@ public abstract class SocketManager implements IReceive, ISend {
      * 连接socket，必须执行于子线程
      */
     public synchronized void executeConnect(String from) {
-        MLogUtils.i("是否需要连接IM？", !isConnected, "isCloseSocket", isCloseSocket, "from", from);
-        while (!isConnected && !isCloseSocket) {
+        MLogUtils.i("是否需要连接IM？", !isConnected.get(), "isCloseSocket", isCloseSocket.get(), "from", from);
+        while (isConnected.compareAndSet(false, true) && !isCloseSocket.get()) {
             try {
                 // 发送数据包，默认为 false，即客户端发送数据采用 Nagle 算法；
                 // 但是对于实时交互性高的程序，建议其改为 true，即关闭 Nagle 算法，客户端每发送一次数据，无论数据包大小都会将这些数据发送出去
                 socket = new Socket();
                 socket.setTcpNoDelay(true);
                 socket.connect(new InetSocketAddress(yimConfig.ip, yimConfig.port), yimConfig.connectTimeout);
+                socket.setSoTimeout(90 * 1000);//90秒没接到消息，认为IM断线
                 inputStream = socket.getInputStream();
                 outputStream = socket.getOutputStream();
                 if (null != inputStream && null != outputStream) {
                     MLogUtils.i("连接IM成功");
-                    isConnected = true;
+                    isConnected.set(true);
                     handler.sendEmptyMessage(CONNECT_SUCCEED);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
                 MLogUtils.e("连接IM失败", e.getMessage());
-                isConnected = false;
+                isConnected.set(false);
             }
             try {
                 //重连
@@ -107,7 +109,7 @@ public abstract class SocketManager implements IReceive, ISend {
      * @return
      */
     public boolean isConnected() {
-        return isConnected;
+        return isConnected.get();
     }
 
     //*************************接收IM消息***************************************
@@ -150,9 +152,9 @@ public abstract class SocketManager implements IReceive, ISend {
      */
     @Override
     public void onReceiveFail(Exception e) {
-        isConnected = false;
+        isConnected.set(false);
         //重连IM
-        if (!isCloseSocket) {
+        if (!isCloseSocket.get()) {
             executeConnect("onReceiveFail");
         } else {
             MLogUtils.e("socket is closed");
@@ -190,9 +192,9 @@ public abstract class SocketManager implements IReceive, ISend {
      */
     @Override
     public void onSendFail(Exception e) {
-        isConnected = false;
+        isConnected.set(false);
         //发送IM消息失败，重新连接IM
-        if (!isCloseSocket) {
+        if (!isCloseSocket.get()) {
             executeConnect("onSendFail");
         } else {
             MLogUtils.e("socket is closed");
@@ -258,9 +260,9 @@ public abstract class SocketManager implements IReceive, ISend {
 
         public void stop() {
             isStop = true;
-            isConnected = false;
+            isConnected.set(false);
             //发送心跳包异常，重连IM
-            if (!isCloseSocket) {
+            if (!isCloseSocket.get()) {
                 executeConnect("HeartPackageTask[close]");
             } else {
                 MLogUtils.e("socket is closed");
@@ -316,8 +318,8 @@ public abstract class SocketManager implements IReceive, ISend {
      */
     public void closeSocket(String from) {
         MLogUtils.e("关闭socket", from);
-        isConnected = false;
-        isCloseSocket = true;
+        isConnected.set(false);
+        isCloseSocket.set(true);
         try {
             if (inputStream != null) {
                 inputStream.close();
