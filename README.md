@@ -10,7 +10,7 @@ YIM是通用socket通信框架
     2、配置相关参数即可使用
 
 ## gradle引入方式
- implementation 'com.jy.yim:yim:1.0.1'
+ implementation 'com.jy.yim:yim:1.0.2'
 
 
 
