@@ -17,7 +17,7 @@ ext {
             androidx_design          : "com.google.android.material:material:1.0.0",
             //multidex
             multidex                 : 'com.android.support:multidex:1.0.3',
-            yim                      : 'com.jy.yim:yim:1.0.2'
+            yim                      : 'com.jy.yim:yim:1.0.3'
 
     ]
 }
