@@ -3,6 +3,8 @@ package com.jy.yim.core;
 import android.os.Handler;
 import android.os.Message;
 
+import androidx.annotation.NonNull;
+
 import com.jy.yim.YIMConfig;
 import com.jy.yim.utils.MLogUtils;
 import com.jy.yim.utils.SocketDataUtils;
@@ -32,8 +34,8 @@ public abstract class SocketManager implements IReceive, ISend {
 
     public MyHandler handler;
 
-    public static final int CONNECT_SUCCEED = 666;//连接成功
-    public static final int RECEIVE_MSG = 667;//接收到IM消息
+    private static final int CONNECT_SUCCEED = 0x1;//连接成功
+    private static final int RECEIVE_MSG = 0x2;//接收到IM消息
 
 
     public SocketManager() {
@@ -175,16 +177,6 @@ public abstract class SocketManager implements IReceive, ISend {
     }
 
     /**
-     * 发送成功
-     *
-     * @param content 消息内容
-     */
-    @Override
-    public void onSendSucceed(String content) {
-
-    }
-
-    /**
      * 发送失败
      *
      * @param e
@@ -283,7 +275,7 @@ public abstract class SocketManager implements IReceive, ISend {
         }
 
         @Override
-        public void dispatchMessage(Message msg) {
+        public void dispatchMessage(@NonNull Message msg) {
             super.dispatchMessage(msg);
             final SocketManager socketManager = managerWeakReference.get();
             if (socketManager == null) {

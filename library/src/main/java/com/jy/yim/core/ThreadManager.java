@@ -28,14 +28,7 @@ public class ThreadManager {
         if (task == null) {
             return;
         }
-        proof();
         mThreadPool.execute(task);
-    }
-
-    private void proof() {
-        if (mThreadPool.isShutdown()) {
-            mThreadPool = Executors.newCachedThreadPool();
-        }
     }
 
     public void release() {
