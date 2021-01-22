@@ -74,14 +74,13 @@ public abstract class SocketManager implements IReceive, ISend {
      */
     public synchronized void executeConnect(String from) {
         MLogUtils.i("是否需要连接IM？", !isConnected.get(), "isCloseSocket", isCloseSocket.get(), "from", from);
-        while (isConnected.compareAndSet(false, true) && !isCloseSocket.get()) {
+        while (!isConnected.get() && !isCloseSocket.get()) {
             try {
                 // 发送数据包，默认为 false，即客户端发送数据采用 Nagle 算法；
                 // 但是对于实时交互性高的程序，建议其改为 true，即关闭 Nagle 算法，客户端每发送一次数据，无论数据包大小都会将这些数据发送出去
                 socket = new Socket();
                 socket.setTcpNoDelay(true);
                 socket.connect(new InetSocketAddress(yimConfig.ip, yimConfig.port), yimConfig.connectTimeout);
-                socket.setSoTimeout(90 * 1000);//90秒没接到消息，认为IM断线
                 inputStream = socket.getInputStream();
                 outputStream = socket.getOutputStream();
                 if (null != inputStream && null != outputStream) {
