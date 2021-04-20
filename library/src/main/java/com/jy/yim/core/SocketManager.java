@@ -3,8 +3,6 @@ package com.jy.yim.core;
 import android.os.Handler;
 import android.os.Message;
 
-import androidx.annotation.NonNull;
-
 import com.jy.yim.YIMConfig;
 import com.jy.yim.utils.MLogUtils;
 import com.jy.yim.utils.SocketDataUtils;
@@ -53,7 +51,7 @@ public abstract class SocketManager implements IReceive, ISend {
      * 开启新线程，连接socket
      */
     public void connect() {
-        closeSocket("SocketManager[newConnectTask]");
+        closeSocketChannel("SocketManager[connect]");
         isCloseSocket.set(false);
         MLogUtils.i("启动新线程--连接IM");
         ThreadManager.getInstance().execute(new connectTask());
@@ -75,7 +73,7 @@ public abstract class SocketManager implements IReceive, ISend {
      * 连接socket，必须执行于子线程
      */
     public synchronized void executeConnect(String from) {
-        MLogUtils.i("是否需要连接IM？", !isConnected.get(), "isCloseSocket", isCloseSocket.get(), "from", from);
+        MLogUtils.i("是否需要连接IM？", !isConnected.get(), "isCloseSocket", isCloseSocket.get(), "ThreadName", Thread.currentThread().getName(), "from", from, "ip", yimConfig.ip);
         while (!isConnected.get() && !isCloseSocket.get()) {
             try {
                 // 发送数据包，默认为 false，即客户端发送数据采用 Nagle 算法；
@@ -86,13 +84,13 @@ public abstract class SocketManager implements IReceive, ISend {
                 inputStream = socket.getInputStream();
                 outputStream = socket.getOutputStream();
                 if (null != inputStream && null != outputStream) {
-                    MLogUtils.i("连接IM成功");
+                    MLogUtils.i("连接IM成功", "ThreadName", Thread.currentThread().getName());
                     isConnected.set(true);
                     handler.sendEmptyMessage(CONNECT_SUCCEED);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                MLogUtils.e("连接IM失败", e.getMessage());
+                MLogUtils.e("连接IM失败", e.getMessage(), "ThreadName", Thread.currentThread().getName());
                 isConnected.set(false);
             }
             try {
@@ -153,7 +151,8 @@ public abstract class SocketManager implements IReceive, ISend {
      */
     @Override
     public void onReceiveFail(Exception e) {
-        isConnected.set(false);
+        //先关闭socket通道
+        closeSocketChannel("onReceiveFail");
         //重连IM
         if (!isCloseSocket.get()) {
             executeConnect("onReceiveFail");
@@ -183,7 +182,8 @@ public abstract class SocketManager implements IReceive, ISend {
      */
     @Override
     public void onSendFail(Exception e) {
-        isConnected.set(false);
+        //先关闭socket通道
+        closeSocketChannel("onSendFail");
         //发送IM消息失败，重新连接IM
         if (!isCloseSocket.get()) {
             executeConnect("onSendFail");
@@ -202,14 +202,6 @@ public abstract class SocketManager implements IReceive, ISend {
         ThreadManager.getInstance().execute(heartPackageTask);
     }
 
-    /**
-     * 关闭心跳包线程
-     */
-    public void closeHeartPackageTask() {
-        if (heartPackageTask != null) {
-            heartPackageTask.stop();
-        }
-    }
 
     /**
      * 心跳包线程
@@ -251,13 +243,18 @@ public abstract class SocketManager implements IReceive, ISend {
 
         public void stop() {
             isStop = true;
-            isConnected.set(false);
+            //先关闭socket通道
+            closeSocketChannel("HeartPackageTask");
             //发送心跳包异常，重连IM
             if (!isCloseSocket.get()) {
-                executeConnect("HeartPackageTask[close]");
+                executeConnect("HeartPackageTask");
             } else {
                 MLogUtils.e("socket is closed");
             }
+        }
+
+        public void closed() {
+            isStop = true;
         }
 
     }
@@ -275,7 +272,7 @@ public abstract class SocketManager implements IReceive, ISend {
         }
 
         @Override
-        public void dispatchMessage(@NonNull Message msg) {
+        public void dispatchMessage(Message msg) {
             super.dispatchMessage(msg);
             final SocketManager socketManager = managerWeakReference.get();
             if (socketManager == null) {
@@ -304,13 +301,18 @@ public abstract class SocketManager implements IReceive, ISend {
 
     //**********************************关闭IM连接*****************************************
 
+    public void closeSocket(String from) {
+        isCloseSocket.set(true);
+        closeSocketChannel(from);
+        MLogUtils.e("关闭socket,并停止重连", from);
+    }
+
     /**
      * 关闭连接
      */
-    public void closeSocket(String from) {
-        MLogUtils.e("关闭socket", from);
+    private void closeSocketChannel(String from) {
+        MLogUtils.e("关闭socket通道", from);
         isConnected.set(false);
-        isCloseSocket.set(true);
         try {
             if (inputStream != null) {
                 inputStream.close();
@@ -340,7 +342,9 @@ public abstract class SocketManager implements IReceive, ISend {
             e.printStackTrace();
         }
         try {
-            closeHeartPackageTask();
+            if (heartPackageTask != null) {
+                heartPackageTask.closed();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

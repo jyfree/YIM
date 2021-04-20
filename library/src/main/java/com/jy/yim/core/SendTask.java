@@ -1,8 +1,6 @@
 package com.jy.yim.core;
 
 
-import androidx.annotation.NonNull;
-
 import com.jy.yim.utils.MLogUtils;
 import com.jy.yim.utils.SocketDataUtils;
 
@@ -22,7 +20,7 @@ public class SendTask implements Runnable {
     private ISend callback;
     private int dataHeaderLength;
 
-    public SendTask(OutputStream outputStream, @NonNull String content, int dataHeaderLength, ISend callback) {
+    public SendTask(OutputStream outputStream, String content, int dataHeaderLength, ISend callback) {
         this.outputStream = outputStream;
         this.content = content;
         this.callback = callback;
